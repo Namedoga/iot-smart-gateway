@@ -3,21 +3,28 @@ const mqtt = require('mqtt');
 const client = mqtt.connect('mqtt://localhost:1883');
 
 client.on('connect', () => {
-    console.log('Connected to MQTT broker');
+    console.log('Gateway connected to broker');
 
-    client.subscribe('test/topic', (err) => {
+    client.subscribe('devices/+/data', (err) => {
         if (!err) {
-            console.log('Subscribed to test/topic');
-        } else {
-            console.log('Subscribe error:', err.message);
+            console.log('Subscribed to all device data');
         }
     });
 });
 
 client.on('message', (topic, message) => {
-    console.log(`Received message: ${message.toString()}`);
-});
+    try {
+        const data = JSON.parse(message.toString());
 
-client.on('error', (err) => {
-    console.log('MQTT error:', err.message);
+        console.log('--- Incoming Data ---');
+        console.log('Topic:', topic);
+        console.log('Device:', data.deviceId);
+        console.log('Temp:', data.temperature);
+        console.log('Humidity:', data.humidity);
+        console.log('Time:', data.timestamp);
+        console.log('----------------------\n');
+
+    } catch (err) {
+        console.log('Error parsing message:', err.message);
+    }
 });

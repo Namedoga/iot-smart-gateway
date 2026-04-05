@@ -3,15 +3,17 @@ const mqtt = require('mqtt');
 const client = mqtt.connect('mqtt://localhost:1883');
 
 client.on('connect', () => {
-    console.log('Device connected to broker');
+    console.log('Device1 connected');
 
     setInterval(() => {
-        const message = `Hello from device1 at ${new Date().toLocaleTimeString()}`;
-        client.publish('test/topic', message);
-        console.log('Message sent:', message);
-    }, 3000);
-});
+        const data = {
+            deviceId: 'device1',
+            temperature: Math.floor(Math.random() * 30) + 10, 
+            humidity: Math.floor(Math.random() * 50) + 30,   
+            timestamp: new Date().toISOString()
+        };
 
-client.on('error', (err) => {
-    console.log('MQTT error:', err.message);
+        client.publish('devices/device1/data', JSON.stringify(data));
+        console.log('Device1 sent:', data);
+    }, 3000);
 });
