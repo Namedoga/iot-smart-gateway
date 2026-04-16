@@ -15,6 +15,15 @@ app.get('/api/devices', (req, res) => {
 
 const client = mqtt.connect('mqtt://localhost:1883');
 
+function isSuspicious(data) {
+    return (
+        data.temperature < -20 ||
+        data.temperature > 80 ||
+        data.humidity < 0 ||
+        data.humidity > 100
+    );
+}
+
 client.on('connect', () => {
     console.log('Gateway connected to MQTT broker');
 
@@ -31,12 +40,19 @@ client.on('message', (topic, message) => {
     try {
         const data = JSON.parse(message.toString());
 
+        let status = 'active';
+
+        if (isSuspicious(data)) {
+            status = 'isolated';
+            console.log(`ALERT: ${data.deviceId} has been isolated due to suspicious values.`);
+        }
+
         devices[data.deviceId] = {
             deviceId: data.deviceId,
             temperature: data.temperature,
             humidity: data.humidity,
             timestamp: data.timestamp,
-            status: 'active'
+            status: status
         };
 
         console.log('Updated device:', devices[data.deviceId]);
